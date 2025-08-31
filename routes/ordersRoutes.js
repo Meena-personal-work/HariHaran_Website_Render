@@ -170,28 +170,50 @@ router.patch(
 );
 
 // READ Orders (list with pagination)
+// router.get(
+//   '/',
+//   asyncHandler(async (req, res) => {
+//     const { page = 1, limit = 50, sort = '-createdAt' } = req.query;
+//     const pageNum = Math.max(1, parseInt(page));
+//     const limitNum = Math.min(200, Math.max(1, parseInt(limit)));
+
+//     const [items, total] = await Promise.all([
+//       Order.find()
+//         .sort(sort)
+//         .skip((pageNum - 1) * limitNum)
+//         .limit(limitNum)
+//         .lean(),
+//       Order.countDocuments(),
+//     ]);
+
+//     res.json({
+//       items,
+//       page: pageNum,
+//       limit: limitNum,
+//       total,
+//       pages: Math.ceil(total / limitNum),
+//     });
+//   })
+// );
+
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const { page = 1, limit = 50, sort = '-createdAt' } = req.query;
-    const pageNum = Math.max(1, parseInt(page));
-    const limitNum = Math.min(200, Math.max(1, parseInt(limit)));
+    const { sort = '-createdAt' } = req.query;
 
     const [items, total] = await Promise.all([
       Order.find()
         .sort(sort)
-        .skip((pageNum - 1) * limitNum)
-        .limit(limitNum)
         .lean(),
       Order.countDocuments(),
     ]);
 
     res.json({
       items,
-      page: pageNum,
-      limit: limitNum,
+      page: 1,
+      limit: total, // returning all
       total,
-      pages: Math.ceil(total / limitNum),
+      pages: 1,
     });
   })
 );

@@ -105,37 +105,62 @@
   );
 
   // ---------- READ (list) ----------
-  router.get(
-    '/',
-    asyncHandler(async (req, res) => {
-      const { page = 1, limit = 100, sort = '-createdAt', onlyActive, brand } = req.query;
-      const pageNum = Math.max(1, parseInt(page));
-      const limitNum = Math.min(500, Math.max(1, parseInt(limit)));
+  // router.get(
+  //   '/',
+  //   asyncHandler(async (req, res) => {
+  //     const { page = 1, limit = 100, sort = '-createdAt', onlyActive, brand } = req.query;
+  //     const pageNum = Math.max(1, parseInt(page));
+  //     const limitNum = Math.min(500, Math.max(1, parseInt(limit)));
 
-      const filter = {};
-      if (onlyActive === 'true') filter.status = true;
+  //     const filter = {};
+  //     if (onlyActive === 'true') filter.status = true;
+  //   if (brand) filter.brand = brand.toLowerCase();
+
+
+  //     const [items, total] = await Promise.all([
+  //       Cracker.find(filter)
+  //         .sort(sort)
+  //         .skip((pageNum - 1) * limitNum)
+  //         .limit(limitNum)
+  //         .lean(),
+  //       Cracker.countDocuments(filter),
+  //     ]);
+
+  //     res.json({
+  //       items,
+  //       page: pageNum,
+  //       limit: limitNum,
+  //       total,
+  //       pages: Math.ceil(total / limitNum),
+  //     });
+  //   })
+  // );
+
+router.get(
+  '/',
+  asyncHandler(async (req, res) => {
+    const { sort = '-createdAt', onlyActive, brand } = req.query;
+
+    const filter = {};
+    if (onlyActive === 'true') filter.status = true;
     if (brand) filter.brand = brand.toLowerCase();
 
+    const [items, total] = await Promise.all([
+      Cracker.find(filter)
+        .sort(sort)
+        .lean(),
+      Cracker.countDocuments(filter),
+    ]);
 
-      const [items, total] = await Promise.all([
-        Cracker.find(filter)
-          .sort(sort)
-          .skip((pageNum - 1) * limitNum)
-          .limit(limitNum)
-          .lean(),
-        Cracker.countDocuments(filter),
-      ]);
-
-      res.json({
-        items,
-        page: pageNum,
-        limit: limitNum,
-        total,
-        pages: Math.ceil(total / limitNum),
-      });
-    })
-  );
-
+    res.json({
+      items,
+      page: 1,
+      limit: total, // since we return all
+      total,
+      pages: 1,
+    });
+  })
+);
 
   // For Customer Panel (simple array)
 router.get(
