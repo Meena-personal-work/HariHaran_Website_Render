@@ -136,10 +136,42 @@
   //   })
   // );
 
+// router.get(
+//   '/',
+//   asyncHandler(async (req, res) => {
+//     console.log('mkmkmk');
+    
+//     const { sort = '-createdAt', onlyActive, brand } = req.query;
+
+//     const filter = {};
+//     if (onlyActive === 'true') filter.status = true;
+//     if (brand) filter.brand = brand.toLowerCase();
+
+//     const [items, total] = await Promise.all([
+//       Cracker.find(filter)
+//         .sort(sort)
+//         .lean(),
+//       Cracker.countDocuments(filter),
+//     ]);
+
+//     console.log(items, 'meena');
+    
+
+//     res.json({
+//       items,
+//       page: 1,
+//       limit: total, // since we return all
+//       total,
+//       pages: 1,
+//     });
+//   })
+// );
+
+// ---------- READ (list) ----------
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const { sort = '-createdAt', onlyActive, brand } = req.query;
+    const { onlyActive, brand } = req.query;
 
     const filter = {};
     if (onlyActive === 'true') filter.status = true;
@@ -147,7 +179,7 @@ router.get(
 
     const [items, total] = await Promise.all([
       Cracker.find(filter)
-        .sort(sort)
+        .sort({ $natural: 1 }) // ✅ keeps same order as in MongoDB Compass
         .lean(),
       Cracker.countDocuments(filter),
     ]);
@@ -155,7 +187,7 @@ router.get(
     res.json({
       items,
       page: 1,
-      limit: total, // since we return all
+      limit: total,
       total,
       pages: 1,
     });
@@ -163,20 +195,38 @@ router.get(
 );
 
   // For Customer Panel (simple array)
+// router.get(
+//   '/customer',
+//   asyncHandler(async (req, res) => {
+//     const { sort = 'createdAt', onlyActive, brand } = req.query;
+
+//     const filter = {};
+//     if (onlyActive === 'true') filter.status = true;
+//     if (brand) filter.brand = brand.toLowerCase();
+
+//     const items = await Cracker.find(filter).sort(sort).lean();
+
+//     res.json(items); // ✅ Plain array
+//   })
+// );
+
 router.get(
   '/customer',
   asyncHandler(async (req, res) => {
-    const { sort = 'createdAt', onlyActive, brand } = req.query;
+    const { onlyActive, brand } = req.query;
 
     const filter = {};
     if (onlyActive === 'true') filter.status = true;
     if (brand) filter.brand = brand.toLowerCase();
 
-    const items = await Cracker.find(filter).sort(sort).lean();
+    const items = await Cracker.find(filter)
+      .sort({ $natural: 1 }) // ✅ same order as imported
+      .lean();
 
-    res.json(items); // ✅ Plain array
+    res.json(items);
   })
 );
+
 
 
   // ---------- READ (single) ----------
