@@ -17,6 +17,11 @@ const OrderSchema = new mongoose.Schema(
       default: "pending",
     },
 
+       // ✅ New Dispatch fields
+    transportName: { type: String },
+    dispatchDate: { type: String }, // you can also use Date type
+    llrNumber: { type: String },
+
     items: [
       {
         name: { type: String, required: true },
