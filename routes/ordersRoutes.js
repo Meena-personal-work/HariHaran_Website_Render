@@ -22,33 +22,11 @@ router.post(
     
     const order = new Order(req.body);
     await order.save();
-    res.status(201).json(order);
+    // res.status(201).json(order);
+    res.status(201).json({ message: "Order created successfully" });
+
   })
 );
-
-// UPDATE status
-// router.patch(
-//   "/:id/status",
-//   validateId,
-//   asyncHandler(async (req, res) => {
-//     const { status } = req.body;
-
-//     if (!["pending", "dispatched"].includes(status)) {
-//       return res.status(400).json({ error: "Invalid status value" });
-//     }
-
-//     const order = await Order.findByIdAndUpdate(
-//       req.params.id,
-//       { status },
-//       { new: true }
-//     );
-
-//     if (!order) return res.status(404).json({ error: "Not found" });
-
-//     res.json(order);
-//   })
-// );
-
 
 // UPDATE status + dispatch fields
 router.patch(
