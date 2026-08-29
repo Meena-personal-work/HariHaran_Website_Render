@@ -1,147 +1,177 @@
-// //     // routes/crackers.js
-// //   const express = require('express');
-// //   const multer = require('multer');
-// //   const cloudinary = require('../config/cloudinary');
-// //   const Cracker = require('../models/Cracker');
-// //   const streamifier = require('streamifier');
-// //   const mongoose = require('mongoose');
+// // //     // routes/crackers.js
+// // //   const express = require('express');
+// // //   const multer = require('multer');
+// // //   const cloudinary = require('../config/cloudinary');
+// // //   const Cracker = require('../models/Cracker');
+// // //   const streamifier = require('streamifier');
+// // //   const mongoose = require('mongoose');
 
-// //   const router = express.Router();
+// // //   const router = express.Router();
 
-// //   // ---------- Multer: memory storage + limits + image-only filter ----------
-// //   const upload = multer({
-// //     storage: multer.memoryStorage(),
-// //     limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-// //     fileFilter: (req, file, cb) => {
-// //       const ok = /image\/(jpeg|png|webp|gif|jpg)/i.test(file.mimetype);
-// //       if (!ok) return cb(new Error('Only image files are allowed (jpeg, png, webp, gif)'));
-// //       cb(null, true);
-// //     },
-// //   });
+// // //   // ---------- Multer: memory storage + limits + image-only filter ----------
+// // //   const upload = multer({
+// // //     storage: multer.memoryStorage(),
+// // //     limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+// // //     fileFilter: (req, file, cb) => {
+// // //       const ok = /image\/(jpeg|png|webp|gif|jpg)/i.test(file.mimetype);
+// // //       if (!ok) return cb(new Error('Only image files are allowed (jpeg, png, webp, gif)'));
+// // //       cb(null, true);
+// // //     },
+// // //   });
 
-// //   // ---------- Helpers ----------
-// //   function uploadToCloudinary(buffer, folder = 'crackers-admin') {
-// //     return new Promise((resolve, reject) => {
-// //       const stream = cloudinary.uploader.upload_stream(
-// //         {
-// //           folder,
-// //           resource_type: 'image',
-// //           overwrite: false,
-// //         },
-// //         (error, result) => {
-// //           if (error) return reject(error);
-// //           resolve(result);
-// //         }
-// //       );
-// //       streamifier.createReadStream(buffer).pipe(stream);
-// //     });
-// //   }
+// // //   // ---------- Helpers ----------
+// // //   function uploadToCloudinary(buffer, folder = 'crackers-admin') {
+// // //     return new Promise((resolve, reject) => {
+// // //       const stream = cloudinary.uploader.upload_stream(
+// // //         {
+// // //           folder,
+// // //           resource_type: 'image',
+// // //           overwrite: false,
+// // //         },
+// // //         (error, result) => {
+// // //           if (error) return reject(error);
+// // //           resolve(result);
+// // //         }
+// // //       );
+// // //       streamifier.createReadStream(buffer).pipe(stream);
+// // //     });
+// // //   }
 
-// //   async function destroyFromCloudinary(publicId) {
-// //     try {
-// //       if (!publicId) return { result: 'no-op' };
-// //       return await cloudinary.uploader.destroy(publicId, { resource_type: 'image', invalidate: true });
-// //     } catch (err) {
-// //       return { result: 'error', error: err?.message };
-// //     }
-// //   }
+// // //   async function destroyFromCloudinary(publicId) {
+// // //     try {
+// // //       if (!publicId) return { result: 'no-op' };
+// // //       return await cloudinary.uploader.destroy(publicId, { resource_type: 'image', invalidate: true });
+// // //     } catch (err) {
+// // //       return { result: 'error', error: err?.message };
+// // //     }
+// // //   }
 
-// //   const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+// // //   const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-// //   function validateId(req, res, next) {
-// //     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-// //       return res.status(400).json({ error: 'Invalid id format' });
-// //     }
-// //     next();
-// //   }
+// // //   function validateId(req, res, next) {
+// // //     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+// // //       return res.status(400).json({ error: 'Invalid id format' });
+// // //     }
+// // //     next();
+// // //   }
 
-// //   // Safely coerce numeric fields
-// //   function coerceNumbers(payload) {
-// //     const out = { ...payload };
-// //     if (out.originalRate !== undefined) out.originalRate = Number(out.originalRate);
-// //     if (out.discountRate !== undefined) out.discountRate = Number(out.discountRate);
-// //     return out;
-// //   }
+// // //   // Safely coerce numeric fields
+// // //   function coerceNumbers(payload) {
+// // //     const out = { ...payload };
+// // //     if (out.originalRate !== undefined) out.originalRate = Number(out.originalRate);
+// // //     if (out.discountRate !== undefined) out.discountRate = Number(out.discountRate);
+// // //     return out;
+// // //   }
 
-// //   // ---------- CREATE ----------
-// //   router.post(
-// //     '/',
-// //     upload.single('image'),
-// //     asyncHandler(async (req, res) => {
-// //       let uploaded = null;
+// // //   // ---------- CREATE ----------
+// // //   router.post(
+// // //     '/',
+// // //     upload.single('image'),
+// // //     asyncHandler(async (req, res) => {
+// // //       let uploaded = null;
 
-// //       try {
-// //         const body = coerceNumbers(req.body);
+// // //       try {
+// // //         const body = coerceNumbers(req.body);
 
-// //         if (req.file) {
-// //           uploaded = await Promise.race([
-// //             uploadToCloudinary(req.file.buffer),
-// //             new Promise((_, reject) => setTimeout(() => reject(new Error('Cloudinary upload timed out')), 60000)),
-// //           ]);
-// //         }
+// // //         if (req.file) {
+// // //           uploaded = await Promise.race([
+// // //             uploadToCloudinary(req.file.buffer),
+// // //             new Promise((_, reject) => setTimeout(() => reject(new Error('Cloudinary upload timed out')), 60000)),
+// // //           ]);
+// // //         }
 
-// //         const cracker = new Cracker({
-// //           englishName: body.englishName,
-// //           tamilName: body.tamilName,
-// //           originalRate: body.originalRate,
-// //           discountRate: body.discountRate,
-// //           category: body.category,
-// //           brand: body.brand,
-// //           status: body.status !== undefined ? body.status : true, // ✅ default true
-// //           imageUrl: uploaded?.secure_url || null,
-// //           imagePublicId: uploaded?.public_id || null,
-// //         });
+// // //         const cracker = new Cracker({
+// // //           englishName: body.englishName,
+// // //           tamilName: body.tamilName,
+// // //           originalRate: body.originalRate,
+// // //           discountRate: body.discountRate,
+// // //           category: body.category,
+// // //           brand: body.brand,
+// // //           status: body.status !== undefined ? body.status : true, // ✅ default true
+// // //           imageUrl: uploaded?.secure_url || null,
+// // //           imagePublicId: uploaded?.public_id || null,
+// // //         });
 
-// //         await cracker.save();
-// //         return res.status(201).json(cracker);
-// //       } catch (err) {
-// //         if (uploaded?.public_id) {
-// //           await destroyFromCloudinary(uploaded.public_id);
-// //         }
-// //         console.error('POST /crackers error:', err);
-// //         return res.status(500).json({ error: 'Failed to create cracker', details: err.message });
-// //       }
-// //     })
-// //   );
+// // //         await cracker.save();
+// // //         return res.status(201).json(cracker);
+// // //       } catch (err) {
+// // //         if (uploaded?.public_id) {
+// // //           await destroyFromCloudinary(uploaded.public_id);
+// // //         }
+// // //         console.error('POST /crackers error:', err);
+// // //         return res.status(500).json({ error: 'Failed to create cracker', details: err.message });
+// // //       }
+// // //     })
+// // //   );
 
-// //   // ---------- READ (list) ----------
-// //   // router.get(
-// //   //   '/',
-// //   //   asyncHandler(async (req, res) => {
-// //   //     const { page = 1, limit = 100, sort = '-createdAt', onlyActive, brand } = req.query;
-// //   //     const pageNum = Math.max(1, parseInt(page));
-// //   //     const limitNum = Math.min(500, Math.max(1, parseInt(limit)));
+// // //   // ---------- READ (list) ----------
+// // //   // router.get(
+// // //   //   '/',
+// // //   //   asyncHandler(async (req, res) => {
+// // //   //     const { page = 1, limit = 100, sort = '-createdAt', onlyActive, brand } = req.query;
+// // //   //     const pageNum = Math.max(1, parseInt(page));
+// // //   //     const limitNum = Math.min(500, Math.max(1, parseInt(limit)));
 
-// //   //     const filter = {};
-// //   //     if (onlyActive === 'true') filter.status = true;
-// //   //   if (brand) filter.brand = brand.toLowerCase();
+// // //   //     const filter = {};
+// // //   //     if (onlyActive === 'true') filter.status = true;
+// // //   //   if (brand) filter.brand = brand.toLowerCase();
 
 
-// //   //     const [items, total] = await Promise.all([
-// //   //       Cracker.find(filter)
-// //   //         .sort(sort)
-// //   //         .skip((pageNum - 1) * limitNum)
-// //   //         .limit(limitNum)
-// //   //         .lean(),
-// //   //       Cracker.countDocuments(filter),
-// //   //     ]);
+// // //   //     const [items, total] = await Promise.all([
+// // //   //       Cracker.find(filter)
+// // //   //         .sort(sort)
+// // //   //         .skip((pageNum - 1) * limitNum)
+// // //   //         .limit(limitNum)
+// // //   //         .lean(),
+// // //   //       Cracker.countDocuments(filter),
+// // //   //     ]);
 
-// //   //     res.json({
-// //   //       items,
-// //   //       page: pageNum,
-// //   //       limit: limitNum,
-// //   //       total,
-// //   //       pages: Math.ceil(total / limitNum),
-// //   //     });
-// //   //   })
-// //   // );
+// // //   //     res.json({
+// // //   //       items,
+// // //   //       page: pageNum,
+// // //   //       limit: limitNum,
+// // //   //       total,
+// // //   //       pages: Math.ceil(total / limitNum),
+// // //   //     });
+// // //   //   })
+// // //   // );
 
+// // // // router.get(
+// // // //   '/',
+// // // //   asyncHandler(async (req, res) => {
+// // // //     console.log('mkmkmk');
+    
+// // // //     const { sort = '-createdAt', onlyActive, brand } = req.query;
+
+// // // //     const filter = {};
+// // // //     if (onlyActive === 'true') filter.status = true;
+// // // //     if (brand) filter.brand = brand.toLowerCase();
+
+// // // //     const [items, total] = await Promise.all([
+// // // //       Cracker.find(filter)
+// // // //         .sort(sort)
+// // // //         .lean(),
+// // // //       Cracker.countDocuments(filter),
+// // // //     ]);
+
+// // // //     console.log(items, 'meena');
+    
+
+// // // //     res.json({
+// // // //       items,
+// // // //       page: 1,
+// // // //       limit: total, // since we return all
+// // // //       total,
+// // // //       pages: 1,
+// // // //     });
+// // // //   })
+// // // // );
+
+// // // // ---------- READ (list) ----------
 // // // router.get(
 // // //   '/',
 // // //   asyncHandler(async (req, res) => {
-// // //     console.log('mkmkmk');
-    
-// // //     const { sort = '-createdAt', onlyActive, brand } = req.query;
+// // //     const { onlyActive, brand } = req.query;
 
 // // //     const filter = {};
 // // //     if (onlyActive === 'true') filter.status = true;
@@ -149,23 +179,251 @@
 
 // // //     const [items, total] = await Promise.all([
 // // //       Cracker.find(filter)
-// // //         .sort(sort)
+// // //         .sort({ $natural: 1 }) // ✅ keeps same order as in MongoDB Compass
 // // //         .lean(),
 // // //       Cracker.countDocuments(filter),
 // // //     ]);
 
-// // //     console.log(items, 'meena');
-    
-
 // // //     res.json({
 // // //       items,
 // // //       page: 1,
-// // //       limit: total, // since we return all
+// // //       limit: total,
 // // //       total,
 // // //       pages: 1,
 // // //     });
 // // //   })
 // // // );
+
+// // //   // For Customer Panel (simple array)
+// // // // router.get(
+// // // //   '/customer',
+// // // //   asyncHandler(async (req, res) => {
+// // // //     const { sort = 'createdAt', onlyActive, brand } = req.query;
+
+// // // //     const filter = {};
+// // // //     if (onlyActive === 'true') filter.status = true;
+// // // //     if (brand) filter.brand = brand.toLowerCase();
+
+// // // //     const items = await Cracker.find(filter).sort(sort).lean();
+
+// // // //     res.json(items); // ✅ Plain array
+// // // //   })
+// // // // );
+
+// // // router.get(
+// // //   '/customer',
+// // //   asyncHandler(async (req, res) => {
+// // //     const { onlyActive, brand } = req.query;
+
+// // //     const filter = {};
+// // //     if (onlyActive === 'true') filter.status = true;
+// // //     if (brand) filter.brand = brand.toLowerCase();
+
+// // //     const items = await Cracker.find(filter)
+// // //       .sort({ $natural: 1 }) // ✅ same order as imported
+// // //       .lean();
+
+// // //     res.json(items);
+// // //   })
+// // // );
+
+
+
+// // //   // ---------- READ (single) ----------
+// // //   router.get(
+// // //     '/:id',
+// // //     validateId,
+// // //     asyncHandler(async (req, res) => {
+// // //       const cracker = await Cracker.findById(req.params.id).lean();
+// // //       if (!cracker) return res.status(404).json({ error: 'Not found' });
+// // //       res.json(cracker);
+// // //     })
+// // //   );
+
+// // //   // ---------- UPDATE ----------
+// // //   router.put(
+// // //     '/:id',
+// // //     validateId,
+// // //     upload.single('image'),
+// // //     asyncHandler(async (req, res) => {
+// // //       const cracker = await Cracker.findById(req.params.id);
+// // //       if (!cracker) return res.status(404).json({ error: 'Not found' });
+
+// // //       const body = coerceNumbers(req.body);
+
+// // //       const updateData = {};
+// // //       ['englishName', 'tamilName', 'originalRate', 'discountRate', 'category', 'status'].forEach((k) => {
+// // //         if (body[k] !== undefined) updateData[k] = body[k];
+// // //       });
+
+// // //       let uploaded = null;
+// // //       try {
+// // //         if (req.file) {
+// // //           uploaded = await uploadToCloudinary(req.file.buffer);
+// // //           updateData.imageUrl = uploaded.secure_url;
+// // //           updateData.imagePublicId = uploaded.public_id;
+// // //         }
+
+// // //         const updated = await Cracker.findByIdAndUpdate(req.params.id, updateData, { new: true });
+
+// // //         if (req.file && cracker.imagePublicId && cracker.imagePublicId !== uploaded.public_id) {
+// // //           await destroyFromCloudinary(cracker.imagePublicId);
+// // //         }
+
+// // //         return res.json(updated);
+// // //       } catch (err) {
+// // //         if (uploaded?.public_id) {
+// // //           await destroyFromCloudinary(uploaded.public_id);
+// // //         }
+// // //         console.error('PUT /crackers error:', err);
+// // //         return res.status(500).json({ error: 'Failed to update cracker', details: err.message });
+// // //       }
+// // //     })
+// // //   );
+
+// // //   // ---------- TOGGLE STATUS (Show/Hide) ----------
+// // //   router.patch(
+// // //     '/:id/status',
+// // //     validateId,
+// // //     asyncHandler(async (req, res) => {
+// // //       const { status } = req.body; // expects true/false
+// // //       const cracker = await Cracker.findByIdAndUpdate(
+// // //         req.params.id,
+// // //         { status },
+// // //         { new: true }
+// // //       );
+// // //       if (!cracker) return res.status(404).json({ error: 'Not found' });
+// // //       res.json(cracker);
+// // //     })
+// // //   );
+
+// // //   // ---------- DELETE ----------
+// // //   router.delete(
+// // //     '/:id',
+// // //     validateId,
+// // //     asyncHandler(async (req, res) => {
+// // //       const cracker = await Cracker.findById(req.params.id);
+// // //       if (!cracker) return res.status(404).json({ error: 'Not found' });
+
+// // //       await Cracker.findByIdAndDelete(req.params.id);
+
+// // //       const cloudRes = await destroyFromCloudinary(cracker.imagePublicId);
+// // //       if (cloudRes.result === 'error') {
+// // //         console.error('Cloudinary delete error:', cloudRes.error || 'Unknown reason');
+// // //       }
+
+// // //       res.json({ message: 'Deleted successfully' });
+// // //     })
+// // //   );
+
+// // //   // ---------- Error Handler ----------
+// // //   router.use((err, req, res, next) => {
+// // //     if (err instanceof multer.MulterError) {
+// // //       if (err.code === 'LIMIT_FILE_SIZE') {
+// // //         return res.status(400).json({ error: 'File size should not exceed 5 MB' });
+// // //       }
+// // //       return res.status(400).json({ error: err.message });
+// // //     }
+
+// // //     if (err?.message?.includes('Only image files are allowed')) {
+// // //       return res.status(400).json({ error: err.message });
+// // //     }
+
+// // //     console.error('Unhandled route error:', err);
+// // //     res.status(500).json({ error: 'Internal Server Error', details: err.message });
+// // //   });
+
+// // //   module.exports = router;
+
+// // const express = require('express');
+// // const multer = require('multer');
+// // const Cracker = require('../models/Cracker');
+// // const mongoose = require('mongoose');
+
+// // const router = express.Router();
+
+// // // ---------- Multer: memory storage + limits + image-only filter ----------
+// // const upload = multer({
+// //   storage: multer.memoryStorage(),
+// //   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+// //   fileFilter: (req, file, cb) => {
+// //     const ok = /image\/(jpeg|png|webp|gif|jpg)/i.test(file.mimetype);
+
+// //     if (!ok) {
+// //       return cb(
+// //         new Error('Only image files are allowed (jpeg, png, webp, gif)')
+// //       );
+// //     }
+
+// //     cb(null, true);
+// //   },
+// // });
+
+// // // ---------- Constants ----------
+// // const DUMMY_IMAGE_URL =
+// //   'https://placehold.co/600x600/png?text=Cracker+Image';
+
+// // // ---------- Helpers ----------
+// // const asyncHandler = (fn) => (req, res, next) =>
+// //   Promise.resolve(fn(req, res, next)).catch(next);
+
+// // function validateId(req, res, next) {
+// //   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+// //     return res.status(400).json({ error: 'Invalid id format' });
+// //   }
+
+// //   next();
+// // }
+
+// // // Safely coerce numeric fields
+// // function coerceNumbers(payload) {
+// //   const out = { ...payload };
+
+// //   if (out.originalRate !== undefined) {
+// //     out.originalRate = Number(out.originalRate);
+// //   }
+
+// //   if (out.discountRate !== undefined) {
+// //     out.discountRate = Number(out.discountRate);
+// //   }
+
+// //   return out;
+// // }
+
+// // // ---------- CREATE ----------
+// // router.post(
+// //   '/',
+// //   upload.single('image'),
+// //   asyncHandler(async (req, res) => {
+// //     try {
+// //       const body = coerceNumbers(req.body);
+
+// //       const cracker = new Cracker({
+// //         englishName: body.englishName,
+// //         tamilName: body.tamilName,
+// //         originalRate: body.originalRate,
+// //         discountRate: body.discountRate,
+// //         category: body.category,
+// //         brand: body.brand,
+// //         status: body.status !== undefined ? body.status : true,
+
+// //         // Dummy image for now
+// //         imageUrl: DUMMY_IMAGE_URL,
+// //       });
+
+// //       await cracker.save();
+
+// //       return res.status(201).json(cracker);
+// //     } catch (err) {
+// //       console.error('POST /crackers error:', err);
+
+// //       return res.status(500).json({
+// //         error: 'Failed to create cracker',
+// //         details: err.message,
+// //       });
+// //     }
+// //   })
+// // );
 
 // // // ---------- READ (list) ----------
 // // router.get(
@@ -174,13 +432,20 @@
 // //     const { onlyActive, brand } = req.query;
 
 // //     const filter = {};
-// //     if (onlyActive === 'true') filter.status = true;
-// //     if (brand) filter.brand = brand.toLowerCase();
+
+// //     if (onlyActive === 'true') {
+// //       filter.status = true;
+// //     }
+
+// //     if (brand) {
+// //       filter.brand = brand.toLowerCase();
+// //     }
 
 // //     const [items, total] = await Promise.all([
 // //       Cracker.find(filter)
-// //         .sort({ $natural: 1 }) // ✅ keeps same order as in MongoDB Compass
+// //         .sort({ $natural: 1 })
 // //         .lean(),
+
 // //       Cracker.countDocuments(filter),
 // //     ]);
 
@@ -194,164 +459,193 @@
 // //   })
 // // );
 
-// //   // For Customer Panel (simple array)
-// // // router.get(
-// // //   '/customer',
-// // //   asyncHandler(async (req, res) => {
-// // //     const { sort = 'createdAt', onlyActive, brand } = req.query;
-
-// // //     const filter = {};
-// // //     if (onlyActive === 'true') filter.status = true;
-// // //     if (brand) filter.brand = brand.toLowerCase();
-
-// // //     const items = await Cracker.find(filter).sort(sort).lean();
-
-// // //     res.json(items); // ✅ Plain array
-// // //   })
-// // // );
-
+// // // ---------- READ (customer) ----------
 // // router.get(
 // //   '/customer',
 // //   asyncHandler(async (req, res) => {
 // //     const { onlyActive, brand } = req.query;
 
 // //     const filter = {};
-// //     if (onlyActive === 'true') filter.status = true;
-// //     if (brand) filter.brand = brand.toLowerCase();
+
+// //     if (onlyActive === 'true') {
+// //       filter.status = true;
+// //     }
+
+// //     if (brand) {
+// //       filter.brand = brand.toLowerCase();
+// //     }
 
 // //     const items = await Cracker.find(filter)
-// //       .sort({ $natural: 1 }) // ✅ same order as imported
+// //       .sort({ $natural: 1 })
 // //       .lean();
 
 // //     res.json(items);
 // //   })
 // // );
 
+// // // ---------- READ (single) ----------
+// // router.get(
+// //   '/:id',
+// //   validateId,
+// //   asyncHandler(async (req, res) => {
+// //     const cracker = await Cracker.findById(req.params.id).lean();
 
+// //     if (!cracker) {
+// //       return res.status(404).json({ error: 'Not found' });
+// //     }
 
-// //   // ---------- READ (single) ----------
-// //   router.get(
-// //     '/:id',
-// //     validateId,
-// //     asyncHandler(async (req, res) => {
-// //       const cracker = await Cracker.findById(req.params.id).lean();
-// //       if (!cracker) return res.status(404).json({ error: 'Not found' });
-// //       res.json(cracker);
-// //     })
-// //   );
+// //     res.json(cracker);
+// //   })
+// // );
 
-// //   // ---------- UPDATE ----------
-// //   router.put(
-// //     '/:id',
-// //     validateId,
-// //     upload.single('image'),
-// //     asyncHandler(async (req, res) => {
-// //       const cracker = await Cracker.findById(req.params.id);
-// //       if (!cracker) return res.status(404).json({ error: 'Not found' });
+// // // ---------- UPDATE ----------
+// // router.put(
+// //   '/:id',
+// //   validateId,
+// //   upload.single('image'),
+// //   asyncHandler(async (req, res) => {
+// //     const cracker = await Cracker.findById(req.params.id);
 
-// //       const body = coerceNumbers(req.body);
+// //     if (!cracker) {
+// //       return res.status(404).json({ error: 'Not found' });
+// //     }
 
-// //       const updateData = {};
-// //       ['englishName', 'tamilName', 'originalRate', 'discountRate', 'category', 'status'].forEach((k) => {
-// //         if (body[k] !== undefined) updateData[k] = body[k];
+// //     const body = coerceNumbers(req.body);
+
+// //     const updateData = {};
+
+// //     [
+// //       'englishName',
+// //       'tamilName',
+// //       'originalRate',
+// //       'discountRate',
+// //       'category',
+// //       'brand',
+// //       'status',
+// //     ].forEach((key) => {
+// //       if (body[key] !== undefined) {
+// //         updateData[key] = body[key];
+// //       }
+// //     });
+
+// //     // If an image is uploaded, still don't call Cloudinary.
+// //     // Just keep/save the dummy image.
+// //     if (req.file) {
+// //       updateData.imageUrl = DUMMY_IMAGE_URL;
+// //     }
+
+// //     const updated = await Cracker.findByIdAndUpdate(
+// //       req.params.id,
+// //       updateData,
+// //       { new: true }
+// //     );
+
+// //     return res.json(updated);
+// //   })
+// // );
+
+// // // ---------- TOGGLE STATUS ----------
+// // router.patch(
+// //   '/:id/status',
+// //   validateId,
+// //   asyncHandler(async (req, res) => {
+// //     const { status } = req.body;
+
+// //     const cracker = await Cracker.findByIdAndUpdate(
+// //       req.params.id,
+// //       { status },
+// //       { new: true }
+// //     );
+
+// //     if (!cracker) {
+// //       return res.status(404).json({ error: 'Not found' });
+// //     }
+
+// //     res.json(cracker);
+// //   })
+// // );
+
+// // // ---------- DELETE ----------
+// // router.delete(
+// //   '/:id',
+// //   validateId,
+// //   asyncHandler(async (req, res) => {
+// //     const cracker = await Cracker.findById(req.params.id);
+
+// //     if (!cracker) {
+// //       return res.status(404).json({ error: 'Not found' });
+// //     }
+
+// //     await Cracker.findByIdAndDelete(req.params.id);
+
+// //     res.json({
+// //       message: 'Deleted successfully',
+// //     });
+// //   })
+// // );
+
+// // // ---------- Error Handler ----------
+// // router.use((err, req, res, next) => {
+// //   if (err instanceof multer.MulterError) {
+// //     if (err.code === 'LIMIT_FILE_SIZE') {
+// //       return res.status(400).json({
+// //         error: 'File size should not exceed 5 MB',
 // //       });
-
-// //       let uploaded = null;
-// //       try {
-// //         if (req.file) {
-// //           uploaded = await uploadToCloudinary(req.file.buffer);
-// //           updateData.imageUrl = uploaded.secure_url;
-// //           updateData.imagePublicId = uploaded.public_id;
-// //         }
-
-// //         const updated = await Cracker.findByIdAndUpdate(req.params.id, updateData, { new: true });
-
-// //         if (req.file && cracker.imagePublicId && cracker.imagePublicId !== uploaded.public_id) {
-// //           await destroyFromCloudinary(cracker.imagePublicId);
-// //         }
-
-// //         return res.json(updated);
-// //       } catch (err) {
-// //         if (uploaded?.public_id) {
-// //           await destroyFromCloudinary(uploaded.public_id);
-// //         }
-// //         console.error('PUT /crackers error:', err);
-// //         return res.status(500).json({ error: 'Failed to update cracker', details: err.message });
-// //       }
-// //     })
-// //   );
-
-// //   // ---------- TOGGLE STATUS (Show/Hide) ----------
-// //   router.patch(
-// //     '/:id/status',
-// //     validateId,
-// //     asyncHandler(async (req, res) => {
-// //       const { status } = req.body; // expects true/false
-// //       const cracker = await Cracker.findByIdAndUpdate(
-// //         req.params.id,
-// //         { status },
-// //         { new: true }
-// //       );
-// //       if (!cracker) return res.status(404).json({ error: 'Not found' });
-// //       res.json(cracker);
-// //     })
-// //   );
-
-// //   // ---------- DELETE ----------
-// //   router.delete(
-// //     '/:id',
-// //     validateId,
-// //     asyncHandler(async (req, res) => {
-// //       const cracker = await Cracker.findById(req.params.id);
-// //       if (!cracker) return res.status(404).json({ error: 'Not found' });
-
-// //       await Cracker.findByIdAndDelete(req.params.id);
-
-// //       const cloudRes = await destroyFromCloudinary(cracker.imagePublicId);
-// //       if (cloudRes.result === 'error') {
-// //         console.error('Cloudinary delete error:', cloudRes.error || 'Unknown reason');
-// //       }
-
-// //       res.json({ message: 'Deleted successfully' });
-// //     })
-// //   );
-
-// //   // ---------- Error Handler ----------
-// //   router.use((err, req, res, next) => {
-// //     if (err instanceof multer.MulterError) {
-// //       if (err.code === 'LIMIT_FILE_SIZE') {
-// //         return res.status(400).json({ error: 'File size should not exceed 5 MB' });
-// //       }
-// //       return res.status(400).json({ error: err.message });
 // //     }
 
-// //     if (err?.message?.includes('Only image files are allowed')) {
-// //       return res.status(400).json({ error: err.message });
-// //     }
+// //     return res.status(400).json({
+// //       error: err.message,
+// //     });
+// //   }
 
-// //     console.error('Unhandled route error:', err);
-// //     res.status(500).json({ error: 'Internal Server Error', details: err.message });
+// //   if (err?.message?.includes('Only image files are allowed')) {
+// //     return res.status(400).json({
+// //       error: err.message,
+// //     });
+// //   }
+
+// //   console.error('Unhandled route error:', err);
+
+// //   res.status(500).json({
+// //     error: 'Internal Server Error',
+// //     details: err.message,
 // //   });
+// // });
 
-// //   module.exports = router;
+// // module.exports = router;
 
 // const express = require('express');
 // const multer = require('multer');
-// const Cracker = require('../models/Cracker');
 // const mongoose = require('mongoose');
+// const Cracker = require('../models/Cracker');
 
 // const router = express.Router();
 
-// // ---------- Multer: memory storage + limits + image-only filter ----------
+// // =====================================================
+// // MULTER CONFIGURATION
+// // =====================================================
+
 // const upload = multer({
 //   storage: multer.memoryStorage(),
-//   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-//   fileFilter: (req, file, cb) => {
-//     const ok = /image\/(jpeg|png|webp|gif|jpg)/i.test(file.mimetype);
 
-//     if (!ok) {
+//   limits: {
+//     fileSize: 5 * 1024 * 1024, // 5 MB
+//   },
+
+//   fileFilter: (req, file, cb) => {
+//     const allowedTypes = [
+//       'image/jpeg',
+//       'image/jpg',
+//       'image/png',
+//       'image/webp',
+//       'image/gif',
+//     ];
+
+//     if (!allowedTypes.includes(file.mimetype)) {
 //       return cb(
-//         new Error('Only image files are allowed (jpeg, png, webp, gif)')
+//         new Error(
+//           'Only image files are allowed (jpeg, jpg, png, webp, gif)'
+//         )
 //       );
 //     }
 
@@ -359,23 +653,31 @@
 //   },
 // });
 
-// // ---------- Constants ----------
-// const DUMMY_IMAGE_URL =
-//   'https://placehold.co/600x600/png?text=Cracker+Image';
+// // =====================================================
+// // ASYNC HANDLER
+// // =====================================================
 
-// // ---------- Helpers ----------
 // const asyncHandler = (fn) => (req, res, next) =>
 //   Promise.resolve(fn(req, res, next)).catch(next);
 
+// // =====================================================
+// // VALIDATE MONGODB ID
+// // =====================================================
+
 // function validateId(req, res, next) {
 //   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-//     return res.status(400).json({ error: 'Invalid id format' });
+//     return res.status(400).json({
+//       error: 'Invalid id format',
+//     });
 //   }
 
 //   next();
 // }
 
-// // Safely coerce numeric fields
+// // =====================================================
+// // COERCE NUMBER VALUES
+// // =====================================================
+
 // function coerceNumbers(payload) {
 //   const out = { ...payload };
 
@@ -390,30 +692,66 @@
 //   return out;
 // }
 
-// // ---------- CREATE ----------
+// // =====================================================
+// // CREATE CRACKER
+// // POST /crackers
+// // =====================================================
+
 // router.post(
 //   '/',
 //   upload.single('image'),
+
 //   asyncHandler(async (req, res) => {
 //     try {
 //       const body = coerceNumbers(req.body);
 
-//       const cracker = new Cracker({
+//       // ---------------------------------------------
+//       // Create cracker object
+//       // ---------------------------------------------
+
+//       const crackerData = {
 //         englishName: body.englishName,
 //         tamilName: body.tamilName,
 //         originalRate: body.originalRate,
 //         discountRate: body.discountRate,
 //         category: body.category,
 //         brand: body.brand,
-//         status: body.status !== undefined ? body.status : true,
+//         status:
+//           body.status !== undefined
+//             ? body.status === true || body.status === 'true'
+//             : true,
+//       };
 
-//         // Dummy image for now
-//         imageUrl: DUMMY_IMAGE_URL,
-//       });
+//       // ---------------------------------------------
+//       // Save uploaded image in MongoDB
+//       // ---------------------------------------------
+
+//       if (req.file) {
+//         crackerData.image = {
+//           data: req.file.buffer,
+//           contentType: req.file.mimetype,
+//         };
+//       }
+
+//       // ---------------------------------------------
+//       // Save to MongoDB
+//       // ---------------------------------------------
+
+//       const cracker = new Cracker(crackerData);
 
 //       await cracker.save();
 
-//       return res.status(201).json(cracker);
+//       // ---------------------------------------------
+//       // Don't send huge binary image in JSON response
+//       // ---------------------------------------------
+
+//       const responseData = cracker.toObject();
+
+//       delete responseData.image;
+
+//       responseData.imageUrl = `/api/crackers/${cracker._id}/image`;
+
+//       return res.status(201).json(responseData);
 //     } catch (err) {
 //       console.error('POST /crackers error:', err);
 
@@ -425,9 +763,51 @@
 //   })
 // );
 
-// // ---------- READ (list) ----------
+// // =====================================================
+// // GET CRACKER IMAGE
+// // GET /crackers/:id/image
+// // =====================================================
+
+// router.get(
+//   '/:id/image',
+//   validateId,
+
+//   asyncHandler(async (req, res) => {
+//     const cracker = await Cracker.findById(req.params.id).select(
+//       'image'
+//     );
+
+//     if (!cracker) {
+//       return res.status(404).json({
+//         error: 'Cracker not found',
+//       });
+//     }
+
+//     if (!cracker.image || !cracker.image.data) {
+//       return res.status(404).json({
+//         error: 'Image not found',
+//       });
+//     }
+
+//     // Set correct image type
+//     res.set('Content-Type', cracker.image.contentType);
+
+//     // Optional browser caching
+//     res.set('Cache-Control', 'public, max-age=86400');
+
+//     // Send actual image
+//     return res.send(cracker.image.data);
+//   })
+// );
+
+// // =====================================================
+// // READ ALL CRACKERS
+// // GET /crackers
+// // =====================================================
+
 // router.get(
 //   '/',
+
 //   asyncHandler(async (req, res) => {
 //     const { onlyActive, brand } = req.query;
 
@@ -443,14 +823,24 @@
 
 //     const [items, total] = await Promise.all([
 //       Cracker.find(filter)
+//         .select('-image')
 //         .sort({ $natural: 1 })
 //         .lean(),
 
 //       Cracker.countDocuments(filter),
 //     ]);
 
-//     res.json({
-//       items,
+//     // ---------------------------------------------
+//     // Add image URL to every cracker
+//     // ---------------------------------------------
+
+//     const formattedItems = items.map((item) => ({
+//       ...item,
+//       imageUrl: `/api/crackers/${item._id}/image`,
+//     }));
+
+//     return res.json({
+//       items: formattedItems,
 //       page: 1,
 //       limit: total,
 //       total,
@@ -459,9 +849,14 @@
 //   })
 // );
 
-// // ---------- READ (customer) ----------
+// // =====================================================
+// // CUSTOMER LIST
+// // GET /crackers/customer
+// // =====================================================
+
 // router.get(
 //   '/customer',
+
 //   asyncHandler(async (req, res) => {
 //     const { onlyActive, brand } = req.query;
 
@@ -476,116 +871,223 @@
 //     }
 
 //     const items = await Cracker.find(filter)
+//       .select('-image')
 //       .sort({ $natural: 1 })
 //       .lean();
 
-//     res.json(items);
+//     // ---------------------------------------------
+//     // Add image URL
+//     // ---------------------------------------------
+
+//     const formattedItems = items.map((item) => ({
+//       ...item,
+//       imageUrl: `/api/crackers/${item._id}/image`,
+//     }));
+
+//     return res.json(formattedItems);
 //   })
 // );
 
-// // ---------- READ (single) ----------
+// // =====================================================
+// // READ SINGLE CRACKER
+// // GET /crackers/:id
+// // =====================================================
+
 // router.get(
 //   '/:id',
 //   validateId,
+
 //   asyncHandler(async (req, res) => {
-//     const cracker = await Cracker.findById(req.params.id).lean();
+//     const cracker = await Cracker.findById(req.params.id)
+//       .select('-image')
+//       .lean();
 
 //     if (!cracker) {
-//       return res.status(404).json({ error: 'Not found' });
+//       return res.status(404).json({
+//         error: 'Not found',
+//       });
 //     }
 
-//     res.json(cracker);
+//     cracker.imageUrl = `/api/crackers/${cracker._id}/image`;
+
+//     return res.json(cracker);
 //   })
 // );
 
-// // ---------- UPDATE ----------
+// // =====================================================
+// // UPDATE CRACKER
+// // PUT /crackers/:id
+// // =====================================================
+
 // router.put(
 //   '/:id',
 //   validateId,
 //   upload.single('image'),
+
 //   asyncHandler(async (req, res) => {
-//     const cracker = await Cracker.findById(req.params.id);
+//     try {
+//       const cracker = await Cracker.findById(req.params.id);
 
-//     if (!cracker) {
-//       return res.status(404).json({ error: 'Not found' });
-//     }
-
-//     const body = coerceNumbers(req.body);
-
-//     const updateData = {};
-
-//     [
-//       'englishName',
-//       'tamilName',
-//       'originalRate',
-//       'discountRate',
-//       'category',
-//       'brand',
-//       'status',
-//     ].forEach((key) => {
-//       if (body[key] !== undefined) {
-//         updateData[key] = body[key];
+//       if (!cracker) {
+//         return res.status(404).json({
+//           error: 'Not found',
+//         });
 //       }
-//     });
 
-//     // If an image is uploaded, still don't call Cloudinary.
-//     // Just keep/save the dummy image.
-//     if (req.file) {
-//       updateData.imageUrl = DUMMY_IMAGE_URL;
+//       const body = coerceNumbers(req.body);
+
+//       const updateData = {};
+
+//       // ---------------------------------------------
+//       // Update normal fields
+//       // ---------------------------------------------
+
+//       const fields = [
+//         'englishName',
+//         'tamilName',
+//         'originalRate',
+//         'discountRate',
+//         'category',
+//         'brand',
+//       ];
+
+//       fields.forEach((field) => {
+//         if (body[field] !== undefined) {
+//           updateData[field] = body[field];
+//         }
+//       });
+
+//       // ---------------------------------------------
+//       // Update status
+//       // ---------------------------------------------
+
+//       if (body.status !== undefined) {
+//         updateData.status =
+//           body.status === true || body.status === 'true';
+//       }
+
+//       // ---------------------------------------------
+//       // Update image only when new image uploaded
+//       // ---------------------------------------------
+
+//       if (req.file) {
+//         updateData.image = {
+//           data: req.file.buffer,
+//           contentType: req.file.mimetype,
+//         };
+//       }
+
+//       // ---------------------------------------------
+//       // Update MongoDB
+//       // ---------------------------------------------
+
+//       const updated = await Cracker.findByIdAndUpdate(
+//         req.params.id,
+//         updateData,
+//         {
+//           new: true,
+//           runValidators: true,
+//         }
+//       )
+//         .select('-image')
+//         .lean();
+
+//       // ---------------------------------------------
+//       // Add image URL
+//       // ---------------------------------------------
+
+//       updated.imageUrl = `/api/crackers/${updated._id}/image`;
+
+//       return res.json(updated);
+//     } catch (err) {
+//       console.error('PUT /crackers error:', err);
+
+//       return res.status(500).json({
+//         error: 'Failed to update cracker',
+//         details: err.message,
+//       });
 //     }
-
-//     const updated = await Cracker.findByIdAndUpdate(
-//       req.params.id,
-//       updateData,
-//       { new: true }
-//     );
-
-//     return res.json(updated);
 //   })
 // );
 
-// // ---------- TOGGLE STATUS ----------
+// // =====================================================
+// // TOGGLE STATUS
+// // PATCH /crackers/:id/status
+// // =====================================================
+
 // router.patch(
 //   '/:id/status',
 //   validateId,
+
 //   asyncHandler(async (req, res) => {
 //     const { status } = req.body;
 
-//     const cracker = await Cracker.findByIdAndUpdate(
-//       req.params.id,
-//       { status },
-//       { new: true }
-//     );
-
-//     if (!cracker) {
-//       return res.status(404).json({ error: 'Not found' });
+//     if (typeof status !== 'boolean') {
+//       return res.status(400).json({
+//         error: 'Status must be true or false',
+//       });
 //     }
 
-//     res.json(cracker);
+//     const cracker = await Cracker.findByIdAndUpdate(
+//       req.params.id,
+//       {
+//         status,
+//       },
+//       {
+//         new: true,
+//         runValidators: true,
+//       }
+//     )
+//       .select('-image')
+//       .lean();
+
+//     if (!cracker) {
+//       return res.status(404).json({
+//         error: 'Not found',
+//       });
+//     }
+
+//     cracker.imageUrl = `/api/crackers/${cracker._id}/image`;
+
+//     return res.json(cracker);
 //   })
 // );
 
-// // ---------- DELETE ----------
+// // =====================================================
+// // DELETE CRACKER
+// // DELETE /crackers/:id
+// // =====================================================
+
 // router.delete(
 //   '/:id',
 //   validateId,
+
 //   asyncHandler(async (req, res) => {
 //     const cracker = await Cracker.findById(req.params.id);
 
 //     if (!cracker) {
-//       return res.status(404).json({ error: 'Not found' });
+//       return res.status(404).json({
+//         error: 'Not found',
+//       });
 //     }
 
 //     await Cracker.findByIdAndDelete(req.params.id);
 
-//     res.json({
+//     return res.json({
 //       message: 'Deleted successfully',
 //     });
 //   })
 // );
 
-// // ---------- Error Handler ----------
+// // =====================================================
+// // MULTER / GENERAL ERROR HANDLER
+// // =====================================================
+
 // router.use((err, req, res, next) => {
+//   // ---------------------------------------------
+//   // Multer errors
+//   // ---------------------------------------------
+
 //   if (err instanceof multer.MulterError) {
 //     if (err.code === 'LIMIT_FILE_SIZE') {
 //       return res.status(400).json({
@@ -598,15 +1100,27 @@
 //     });
 //   }
 
-//   if (err?.message?.includes('Only image files are allowed')) {
+//   // ---------------------------------------------
+//   // Invalid image type
+//   // ---------------------------------------------
+
+//   if (
+//     err?.message?.includes(
+//       'Only image files are allowed'
+//     )
+//   ) {
 //     return res.status(400).json({
 //       error: err.message,
 //     });
 //   }
 
-//   console.error('Unhandled route error:', err);
+//   // ---------------------------------------------
+//   // General error
+//   // ---------------------------------------------
 
-//   res.status(500).json({
+//   console.error('Unhandled crackers route error:', err);
+
+//   return res.status(500).json({
 //     error: 'Internal Server Error',
 //     details: err.message,
 //   });
@@ -624,90 +1138,52 @@ const router = express.Router();
 // =====================================================
 // MULTER CONFIGURATION
 // =====================================================
-
 const upload = multer({
   storage: multer.memoryStorage(),
-
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5 MB
-  },
-
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
   fileFilter: (req, file, cb) => {
-    const allowedTypes = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/webp',
-      'image/gif',
-    ];
-
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
     if (!allowedTypes.includes(file.mimetype)) {
-      return cb(
-        new Error(
-          'Only image files are allowed (jpeg, jpg, png, webp, gif)'
-        )
-      );
+      return cb(new Error('Only image files are allowed (jpeg, jpg, png, webp, gif)'));
     }
-
     cb(null, true);
   },
 });
 
 // =====================================================
-// ASYNC HANDLER
-// =====================================================
-
+// HELPERS
+// ===================================================== 
 const asyncHandler = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
 
-// =====================================================
-// VALIDATE MONGODB ID
-// =====================================================
-
 function validateId(req, res, next) {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return res.status(400).json({
-      error: 'Invalid id format',
-    });
+    return res.status(400).json({ error: 'Invalid id format' });
   }
-
   next();
 }
 
-// =====================================================
-// COERCE NUMBER VALUES
-// =====================================================
-
 function coerceNumbers(payload) {
   const out = { ...payload };
-
-  if (out.originalRate !== undefined) {
-    out.originalRate = Number(out.originalRate);
-  }
-
-  if (out.discountRate !== undefined) {
-    out.discountRate = Number(out.discountRate);
-  }
-
+  if (out.originalRate !== undefined) out.originalRate = Number(out.originalRate);
+  if (out.discountRate !== undefined) out.discountRate = Number(out.discountRate);
   return out;
 }
 
-// =====================================================
-// CREATE CRACKER
-// POST /crackers
-// =====================================================
+// ✅ NEW: builds a full, absolute image URL (fixes cross-origin / mixed-content issue)
+function buildImageUrl(req, id) {
+  return `${req.protocol}://${req.get('host')}/api/crackers/${id}/image`;
+}
 
+// =====================================================
+// CREATE CRACKER — POST /crackers
+// =====================================================
 router.post(
   '/',
   upload.single('image'),
-
   asyncHandler(async (req, res) => {
     try {
       const body = coerceNumbers(req.body);
-
-      // ---------------------------------------------
-      // Create cracker object
-      // ---------------------------------------------
 
       const crackerData = {
         englishName: body.englishName,
@@ -716,15 +1192,8 @@ router.post(
         discountRate: body.discountRate,
         category: body.category,
         brand: body.brand,
-        status:
-          body.status !== undefined
-            ? body.status === true || body.status === 'true'
-            : true,
+        status: body.status !== undefined ? (body.status === true || body.status === 'true') : true,
       };
-
-      // ---------------------------------------------
-      // Save uploaded image in MongoDB
-      // ---------------------------------------------
 
       if (req.file) {
         crackerData.image = {
@@ -733,155 +1202,80 @@ router.post(
         };
       }
 
-      // ---------------------------------------------
-      // Save to MongoDB
-      // ---------------------------------------------
-
       const cracker = new Cracker(crackerData);
-
       await cracker.save();
 
-      // ---------------------------------------------
-      // Don't send huge binary image in JSON response
-      // ---------------------------------------------
-
       const responseData = cracker.toObject();
-
       delete responseData.image;
-
-      responseData.imageUrl = `/api/crackers/${cracker._id}/image`;
+      responseData.imageUrl = buildImageUrl(req, cracker._id); // ✅ absolute URL
 
       return res.status(201).json(responseData);
     } catch (err) {
       console.error('POST /crackers error:', err);
-
-      return res.status(500).json({
-        error: 'Failed to create cracker',
-        details: err.message,
-      });
+      return res.status(500).json({ error: 'Failed to create cracker', details: err.message });
     }
   })
 );
 
 // =====================================================
-// GET CRACKER IMAGE
-// GET /crackers/:id/image
+// GET CRACKER IMAGE — GET /crackers/:id/image
 // =====================================================
-
 router.get(
   '/:id/image',
   validateId,
-
   asyncHandler(async (req, res) => {
-    const cracker = await Cracker.findById(req.params.id).select(
-      'image'
-    );
-
-    if (!cracker) {
-      return res.status(404).json({
-        error: 'Cracker not found',
-      });
-    }
-
+    const cracker = await Cracker.findById(req.params.id).select('image');
+    if (!cracker) return res.status(404).json({ error: 'Cracker not found' });
     if (!cracker.image || !cracker.image.data) {
-      return res.status(404).json({
-        error: 'Image not found',
-      });
+      return res.status(404).json({ error: 'Image not found' });
     }
-
-    // Set correct image type
     res.set('Content-Type', cracker.image.contentType);
-
-    // Optional browser caching
     res.set('Cache-Control', 'public, max-age=86400');
-
-    // Send actual image
     return res.send(cracker.image.data);
   })
 );
 
 // =====================================================
-// READ ALL CRACKERS
-// GET /crackers
+// READ ALL — GET /crackers
 // =====================================================
-
 router.get(
   '/',
-
   asyncHandler(async (req, res) => {
     const { onlyActive, brand } = req.query;
-
     const filter = {};
-
-    if (onlyActive === 'true') {
-      filter.status = true;
-    }
-
-    if (brand) {
-      filter.brand = brand.toLowerCase();
-    }
+    if (onlyActive === 'true') filter.status = true;
+    if (brand) filter.brand = brand.toLowerCase();
 
     const [items, total] = await Promise.all([
-      Cracker.find(filter)
-        .select('-image')
-        .sort({ $natural: 1 })
-        .lean(),
-
+      Cracker.find(filter).select('-image').sort({ $natural: 1 }).lean(),
       Cracker.countDocuments(filter),
     ]);
 
-    // ---------------------------------------------
-    // Add image URL to every cracker
-    // ---------------------------------------------
-
     const formattedItems = items.map((item) => ({
       ...item,
-      imageUrl: `/api/crackers/${item._id}/image`,
+      imageUrl: buildImageUrl(req, item._id), // ✅ absolute URL
     }));
 
-    return res.json({
-      items: formattedItems,
-      page: 1,
-      limit: total,
-      total,
-      pages: 1,
-    });
+    return res.json({ items: formattedItems, page: 1, limit: total, total, pages: 1 });
   })
 );
 
 // =====================================================
-// CUSTOMER LIST
-// GET /crackers/customer
+// CUSTOMER LIST — GET /crackers/customer
 // =====================================================
-
 router.get(
   '/customer',
-
   asyncHandler(async (req, res) => {
     const { onlyActive, brand } = req.query;
-
     const filter = {};
+    if (onlyActive === 'true') filter.status = true;
+    if (brand) filter.brand = brand.toLowerCase();
 
-    if (onlyActive === 'true') {
-      filter.status = true;
-    }
-
-    if (brand) {
-      filter.brand = brand.toLowerCase();
-    }
-
-    const items = await Cracker.find(filter)
-      .select('-image')
-      .sort({ $natural: 1 })
-      .lean();
-
-    // ---------------------------------------------
-    // Add image URL
-    // ---------------------------------------------
+    const items = await Cracker.find(filter).select('-image').sort({ $natural: 1 }).lean();
 
     const formattedItems = items.map((item) => ({
       ...item,
-      imageUrl: `/api/crackers/${item._id}/image`,
+      imageUrl: buildImageUrl(req, item._id), // ✅ absolute URL
     }));
 
     return res.json(formattedItems);
@@ -889,241 +1283,114 @@ router.get(
 );
 
 // =====================================================
-// READ SINGLE CRACKER
-// GET /crackers/:id
+// READ SINGLE — GET /crackers/:id
 // =====================================================
-
 router.get(
   '/:id',
   validateId,
-
   asyncHandler(async (req, res) => {
-    const cracker = await Cracker.findById(req.params.id)
-      .select('-image')
-      .lean();
-
-    if (!cracker) {
-      return res.status(404).json({
-        error: 'Not found',
-      });
-    }
-
-    cracker.imageUrl = `/api/crackers/${cracker._id}/image`;
-
+    const cracker = await Cracker.findById(req.params.id).select('-image').lean();
+    if (!cracker) return res.status(404).json({ error: 'Not found' });
+    cracker.imageUrl = buildImageUrl(req, cracker._id); // ✅ absolute URL
     return res.json(cracker);
   })
 );
 
 // =====================================================
-// UPDATE CRACKER
-// PUT /crackers/:id
+// UPDATE — PUT /crackers/:id
 // =====================================================
-
 router.put(
   '/:id',
   validateId,
   upload.single('image'),
-
   asyncHandler(async (req, res) => {
     try {
       const cracker = await Cracker.findById(req.params.id);
-
-      if (!cracker) {
-        return res.status(404).json({
-          error: 'Not found',
-        });
-      }
+      if (!cracker) return res.status(404).json({ error: 'Not found' });
 
       const body = coerceNumbers(req.body);
-
       const updateData = {};
 
-      // ---------------------------------------------
-      // Update normal fields
-      // ---------------------------------------------
-
-      const fields = [
-        'englishName',
-        'tamilName',
-        'originalRate',
-        'discountRate',
-        'category',
-        'brand',
-      ];
-
-      fields.forEach((field) => {
-        if (body[field] !== undefined) {
-          updateData[field] = body[field];
-        }
+      ['englishName', 'tamilName', 'originalRate', 'discountRate', 'category', 'brand'].forEach((field) => {
+        if (body[field] !== undefined) updateData[field] = body[field];
       });
 
-      // ---------------------------------------------
-      // Update status
-      // ---------------------------------------------
-
       if (body.status !== undefined) {
-        updateData.status =
-          body.status === true || body.status === 'true';
+        updateData.status = body.status === true || body.status === 'true';
       }
-
-      // ---------------------------------------------
-      // Update image only when new image uploaded
-      // ---------------------------------------------
 
       if (req.file) {
-        updateData.image = {
-          data: req.file.buffer,
-          contentType: req.file.mimetype,
-        };
+        updateData.image = { data: req.file.buffer, contentType: req.file.mimetype };
       }
 
-      // ---------------------------------------------
-      // Update MongoDB
-      // ---------------------------------------------
+      const updated = await Cracker.findByIdAndUpdate(req.params.id, updateData, {
+        new: true,
+        runValidators: true,
+      }).select('-image').lean();
 
-      const updated = await Cracker.findByIdAndUpdate(
-        req.params.id,
-        updateData,
-        {
-          new: true,
-          runValidators: true,
-        }
-      )
-        .select('-image')
-        .lean();
-
-      // ---------------------------------------------
-      // Add image URL
-      // ---------------------------------------------
-
-      updated.imageUrl = `/api/crackers/${updated._id}/image`;
+      updated.imageUrl = buildImageUrl(req, updated._id); // ✅ absolute URL
 
       return res.json(updated);
     } catch (err) {
       console.error('PUT /crackers error:', err);
-
-      return res.status(500).json({
-        error: 'Failed to update cracker',
-        details: err.message,
-      });
+      return res.status(500).json({ error: 'Failed to update cracker', details: err.message });
     }
   })
 );
 
 // =====================================================
-// TOGGLE STATUS
-// PATCH /crackers/:id/status
+// TOGGLE STATUS — PATCH /crackers/:id/status
 // =====================================================
-
 router.patch(
   '/:id/status',
   validateId,
-
   asyncHandler(async (req, res) => {
     const { status } = req.body;
-
     if (typeof status !== 'boolean') {
-      return res.status(400).json({
-        error: 'Status must be true or false',
-      });
+      return res.status(400).json({ error: 'Status must be true or false' });
     }
 
-    const cracker = await Cracker.findByIdAndUpdate(
-      req.params.id,
-      {
-        status,
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    )
-      .select('-image')
-      .lean();
+    const cracker = await Cracker.findByIdAndUpdate(req.params.id, { status }, {
+      new: true,
+      runValidators: true,
+    }).select('-image').lean();
 
-    if (!cracker) {
-      return res.status(404).json({
-        error: 'Not found',
-      });
-    }
+    if (!cracker) return res.status(404).json({ error: 'Not found' });
 
-    cracker.imageUrl = `/api/crackers/${cracker._id}/image`;
-
+    cracker.imageUrl = buildImageUrl(req, cracker._id); // ✅ absolute URL
     return res.json(cracker);
   })
 );
 
 // =====================================================
-// DELETE CRACKER
-// DELETE /crackers/:id
+// DELETE — DELETE /crackers/:id
 // =====================================================
-
 router.delete(
   '/:id',
   validateId,
-
   asyncHandler(async (req, res) => {
     const cracker = await Cracker.findById(req.params.id);
-
-    if (!cracker) {
-      return res.status(404).json({
-        error: 'Not found',
-      });
-    }
-
+    if (!cracker) return res.status(404).json({ error: 'Not found' });
     await Cracker.findByIdAndDelete(req.params.id);
-
-    return res.json({
-      message: 'Deleted successfully',
-    });
+    return res.json({ message: 'Deleted successfully' });
   })
 );
 
 // =====================================================
-// MULTER / GENERAL ERROR HANDLER
+// ERROR HANDLER
 // =====================================================
-
 router.use((err, req, res, next) => {
-  // ---------------------------------------------
-  // Multer errors
-  // ---------------------------------------------
-
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({
-        error: 'File size should not exceed 5 MB',
-      });
+      return res.status(400).json({ error: 'File size should not exceed 5 MB' });
     }
-
-    return res.status(400).json({
-      error: err.message,
-    });
+    return res.status(400).json({ error: err.message });
   }
-
-  // ---------------------------------------------
-  // Invalid image type
-  // ---------------------------------------------
-
-  if (
-    err?.message?.includes(
-      'Only image files are allowed'
-    )
-  ) {
-    return res.status(400).json({
-      error: err.message,
-    });
+  if (err?.message?.includes('Only image files are allowed')) {
+    return res.status(400).json({ error: err.message });
   }
-
-  // ---------------------------------------------
-  // General error
-  // ---------------------------------------------
-
   console.error('Unhandled crackers route error:', err);
-
-  return res.status(500).json({
-    error: 'Internal Server Error',
-    details: err.message,
-  });
+  return res.status(500).json({ error: 'Internal Server Error', details: err.message });
 });
 
 module.exports = router;
